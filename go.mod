@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	cloud.google.com/go v0.44.3 // indirect
+	cloud.google.com/go/datastore v1.0.0
 	github.com/go-openapi/analysis v0.19.4 // indirect
 	github.com/go-openapi/loads v0.19.2 // indirect
 	github.com/go-openapi/strfmt v0.19.2 // indirect
