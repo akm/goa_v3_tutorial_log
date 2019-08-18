@@ -38,3 +38,14 @@ paths:
             format: int64
       schemes:
       - http
+  /swagger.json:
+    get:
+      summary: Download ../../gen/http/openapi.json
+      operationId: openapi#/swagger.json
+      responses:
+        "200":
+          description: File downloaded
+          schema:
+            type: file
+      schemes:
+      - http
