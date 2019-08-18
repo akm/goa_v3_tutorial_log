@@ -2,7 +2,10 @@ package main
 
 import (
 	calc "calcsvc/gen/calc"
+
 	calcsvr "calcsvc/gen/http/calc/server"
+	openapisvr "calcsvc/gen/http/openapi/server"
+
 	"context"
 	"log"
 	"net/http"
@@ -57,6 +60,7 @@ func handleHTTPServer(ctx context.Context, u *url.URL, calcEndpoints *calc.Endpo
 	}
 	// Configure the mux.
 	calcsvr.Mount(mux, calcServer)
+	openapisvr.Mount(mux)
 
 	// Wrap the multiplexer with additional middlewares. Middlewares mounted
 	// here apply to all the service endpoints.
