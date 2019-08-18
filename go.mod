@@ -18,7 +18,7 @@ require (
 	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337 // indirect
 	github.com/stretchr/testify v1.4.0 // indirect
 	go.mongodb.org/mongo-driver v1.1.0 // indirect
-	goa.design/goa/v3 v3.0.3 // indirect
+	goa.design/goa/v3 v3.0.3
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4 // indirect
 	golang.org/x/mobile v0.0.0-20190814143026-e8b3e6111d02 // indirect
 	golang.org/x/net v0.0.0-20190813141303-74dc4d7220e7 // indirect
