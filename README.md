@@ -14,6 +14,11 @@ Take a look at the commit messages of these pull requests.
 
 ### Setup
 
+Use Go 1.12.x
+
+Go 1.12.x を使ってください。
+
+
 Clone this repository outside of $GOPATH .
 
 GOPATHに含まれないディレクトリにこのリポジトリをcloneします。
