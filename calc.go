@@ -20,5 +20,6 @@ func NewCalc(logger *log.Logger) calc.Service {
 // Add implements add.
 func (s *calcsrvc) Add(ctx context.Context, p *calc.AddPayload) (res int, err error) {
 	s.logger.Print("calc.add")
+	res = p.A + p.B
 	return
 }
