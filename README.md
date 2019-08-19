@@ -9,6 +9,12 @@ Take a look at the commit messages of these pull requests.
 - https://github.com/akm/goa_v3_tutorial_log/pull/1
 - https://github.com/akm/goa_v3_tutorial_log/pull/2
 
+Check this pull request if you wnat to run on GAE.
+
+GAEで動かしたい場合はこちらのPull Requestもチェックしてください。
+
+https://github.com/akm/goa_v3_tutorial_log/pull/4
+
 
 ## Try
 
