@@ -47,9 +47,9 @@ Datastoreエミュレータは以下のようなメッセージを表示しま�
 
 ```
 [datastore] If you are using a library that supports the DATASTORE_EMULATOR_HOST environment variable, run:
-[datastore] 
+[datastore]
 [datastore]   export DATASTORE_EMULATOR_HOST=localhost:8081
-[datastore] 
+[datastore]
 ```
 
 ### Run server
@@ -115,4 +115,25 @@ Get static files like /swagger.json with curl.
 
 ```
 curl localhost:8088/swagger.json
+```
+
+
+
+## Deploy to GAE
+
+### Setup
+
+Edit [app.yaml](./app.yaml) to replace `<YOUR_GCP_PROJECT_ID>` to your GCP project ID.
+
+[app.yaml](./app.yaml) を編集し、 `<YOUR_GCP_PROJECT_ID>` を使用するGCPプロジェクトのIDに変更してください。
+
+
+### Deploy
+
+Deploy `calcsvc` by calling this:
+
+`calcsvc` を以下のコマンドでデプロイします。
+
+```
+gcloud --project=akm-sandbox1 app deploy ./app.yaml
 ```
