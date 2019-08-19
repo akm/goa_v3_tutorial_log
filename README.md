@@ -28,11 +28,56 @@ git clone git@github.com:akm/goa_v3_tutorial_log.git
 cd goa_v3_tutorial_log
 ```
 
+### Setup datastore emulator
+
+```
+gcloud components update
+gcloud components install cloud-datastore-emulator
+```
+
+### Run datastore emulator
+
+```
+gcloud beta emulators datastore start
+```
+
+Then datastore emulator shows the message about `DATASTORE_EMULATOR_HOST` like
+
+Datastoreエミュレータは以下のようなメッセージを表示します。
+
+```
+[datastore] If you are using a library that supports the DATASTORE_EMULATOR_HOST environment variable, run:
+[datastore] 
+[datastore]   export DATASTORE_EMULATOR_HOST=localhost:8081
+[datastore] 
+```
+
 ### Run server
 
 See https://github.com/goadesign/goa#3-run
 
 https://github.com/goadesign/goa#3-run の内容を実行して、サーバを起動します。
+
+
+Define environment variable `DATASTORE_EMULATOR_HOST` already shown before starting server. For Example:
+
+サーバを起動する前に、前に表示された環境変数 `DATASTORE_EMULATOR_HOST` を定義します
+
+```
+export DATASTORE_EMULATOR_HOST=localhost:8081
+```
+
+Set a dummy GCP project ID to environment variable `DATASTORE_PROJECT_ID` .
+
+またDatastoreのクライアントライブラリが接続するダミーのGCPプロジェクト名を指定します。
+
+```
+export DATASTORE_PROJECT_ID=dummy-project-id
+```
+
+Then start sever.
+
+サーバを起動します。
 
 ```
 cd cmd/calc
