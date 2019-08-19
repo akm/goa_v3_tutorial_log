@@ -10,7 +10,6 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
-	"strings"
 	"sync"
 )
 
@@ -18,11 +17,11 @@ func main() {
 	// Define command line flags, add any other flag required to configure the
 	// service.
 	var (
-		hostF     = flag.String("host", "localhost", "Server host (valid values: localhost)")
-		domainF   = flag.String("domain", "", "Host domain name (overrides host domain specified in service design)")
-		httpPortF = flag.String("http-port", "", "HTTP port (overrides host HTTP port specified in service design)")
-		secureF   = flag.Bool("secure", false, "Use secure scheme (https or grpcs)")
-		dbgF      = flag.Bool("debug", false, "Log request and response bodies")
+		hostF   = flag.String("host", "", "Server host (valid values: localhost)")
+		domainF = flag.String("domain", "", "Host domain name (overrides host domain specified in service design)")
+		// httpPortF = flag.String("http-port", "", "HTTP port (overrides host HTTP port specified in service design)")
+		secureF = flag.Bool("secure", false, "Use secure scheme (https or grpcs)")
+		dbgF    = flag.Bool("debug", false, "Log request and response bodies")
 	)
 	flag.Parse()
 
@@ -82,13 +81,28 @@ func main() {
 			if *domainF != "" {
 				u.Host = *domainF
 			}
-			if *httpPortF != "" {
-				h := strings.Split(u.Host, ":")[0]
-				u.Host = h + ":" + *httpPortF
-			} else if u.Port() == "" {
-				u.Host += ":80"
+
+			port := os.Getenv("PORT")
+			logger.Printf("$PORT %q\n", port)
+
+			if port == "" {
+				port = "8080"
 			}
+			u.Host += port
+
 			handleHTTPServer(ctx, u, calcEndpoints, &wg, errc, logger, *dbgF)
+		}
+
+	case "":
+		{
+			port := os.Getenv("PORT")
+			logger.Printf("$PORT %q\n", port)
+
+			if port == "" {
+				port = "8080"
+			}
+
+			handleHTTPServer(ctx, &url.URL{Host: fmt.Sprintf(":%s", port)}, calcEndpoints, &wg, errc, logger, *dbgF)
 		}
 
 	default:

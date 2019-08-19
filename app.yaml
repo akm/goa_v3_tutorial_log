@@ -1,0 +1,16 @@
+runtime: go112
+
+main: ./cmd/calc
+
+service: calcsvc
+
+handlers:
+- url: /(.*\.(json|yaml))$
+  static_files: gen/http/\1
+  upload: gen/http/.*\.(json|yaml)$
+
+- url: /.*
+  script: auto
+
+env_variables:
+  DATASTORE_PROJECT_ID: <YOUR_GCP_PROJECT_ID>
