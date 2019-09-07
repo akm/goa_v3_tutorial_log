@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="google-signin-client_id" content="366606008402-ql40f64avs291ol4e1j5g31fe1je92ms.apps.googleusercontent.com">
+    <title>goa v3 tutorial signup page</title>
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <script>
+        function onSignIn(googleUser) {
+          var id_token = googleUser.getAuthResponse().id_token;
+          document.getElementById("id_token_display").innerHTML = id_token;
+        }
+    </script>
+  </head>
+  <body>
+    <div class="g-signin2" data-onsuccess="onSignIn"></div>
+
+    <div>
+      <span>ID token:</span>
+      <span id="id_token_display"></span>
+    </div>
+  </body>
+</html>
