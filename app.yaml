@@ -9,6 +9,10 @@ handlers:
   static_files: gen/http/\1
   upload: gen/http/.*\.(json|yaml)$
 
+- url: /(.*\.*)$
+  static_files: static/\1
+  upload: static/.*\.*$
+
 - url: /.*
   script: auto
 

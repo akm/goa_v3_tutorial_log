@@ -73,11 +73,15 @@ func handleHTTPServer(ctx context.Context, u *url.URL, calcEndpoints *calc.Endpo
 		handler = httpmdlwr.RequestID()(handler)
 	}
 
+	lowMux := http.NewServeMux()
+	lowMux.Handle("/static/", http.FileServer(http.Dir("../..")))
+	lowMux.Handle("/", handler)
+
 	// Start HTTP server using default configuration, change the code to
 	// configure the server as required by your service.
-	srv := &http.Server{Addr: u.Host, Handler: handler}
+	srv := &http.Server{Addr: u.Host, Handler: lowMux}
 	for _, m := range calcServer.Mounts {
-		logger.Printf("HTTP %q mounted on %s %s", m.Method, m.Verb, m.Pattern)
+		logger.Printf("HTTP %qmounted on %s %s", m.Method, m.Verb, m.Pattern)
 	}
 
 	(*wg).Add(1)
