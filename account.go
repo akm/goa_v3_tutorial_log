@@ -6,8 +6,11 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 
 	"google.golang.org/api/oauth2/v2"
+
+	jwt "github.com/dgrijalva/jwt-go"
 )
 
 // account service example implementation.
@@ -20,6 +23,8 @@ type accountsrvc struct {
 func NewAccount(logger *log.Logger) account.Service {
 	return &accountsrvc{logger}
 }
+
+var jwtSignatureKey = []byte("goa_v3_tutorial_secret")
 
 // Sign up  account with ID token from Google
 func (s *accountsrvc) Signup(ctx context.Context, p *account.SignupPayload) (res string, err error) {
@@ -38,7 +43,17 @@ func (s *accountsrvc) Signup(ctx context.Context, p *account.SignupPayload) (res
 		s.logger.Printf("TokenInfo: %v\n", string(b))
 	}
 
-	res = "dummy-token"
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"nbf":    time.Date(2019, 9, 1, 12, 0, 0, 0, time.UTC).Unix(),
+		"iat":    time.Now().Unix(),
+		"scopes": []string{"api:read", "api:write"},
+	})
+	if t, e := token.SignedString(jwtSignatureKey); e != nil {
+		err = err
+	} else {
+		res = t
+	}
+
 	return
 }
 
