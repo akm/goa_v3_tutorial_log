@@ -53,10 +53,15 @@ func NewClient(
 // signup server.
 func (c *Client) Signup() goa.Endpoint {
 	var (
+		encodeRequest  = EncodeSignupRequest(c.encoder)
 		decodeResponse = DecodeSignupResponse(c.decoder, c.RestoreResponseBody)
 	)
 	return func(ctx context.Context, v interface{}) (interface{}, error) {
 		req, err := c.BuildSignupRequest(ctx, v)
+		if err != nil {
+			return nil, err
+		}
+		err = encodeRequest(req, v)
 		if err != nil {
 			return nil, err
 		}

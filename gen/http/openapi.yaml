@@ -57,6 +57,14 @@ paths:
       summary: signup account
       description: Sign up  account with ID token from Google
       operationId: account#signup
+      parameters:
+      - name: SignupRequestBody
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/AccountSignupRequestBody'
+          required:
+          - id_token
       responses:
         "200":
           description: OK response.
@@ -80,11 +88,23 @@ paths:
       schemes:
       - http
 definitions:
+  AccountSignupRequestBody:
+    title: AccountSignupRequestBody
+    type: object
+    properties:
+      id_token:
+        type: string
+        description: ID token from google
+        example: Et eum aut adipisci temporibus.
+    example:
+      id_token: Et consequatur.
+    required:
+    - id_token
   AccountSignupUnauthorizedResponseBody:
     title: AccountSignupUnauthorizedResponseBody
     type: string
     description: Credentials are invalid
-    example: Non et.
+    example: Sed repudiandae molestiae modi quo.
 securityDefinitions:
   jwt_header_Authorization:
     type: apiKey

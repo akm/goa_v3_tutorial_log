@@ -9,6 +9,7 @@ package client
 
 import (
 	"bytes"
+	account "calcsvc/gen/account"
 	"context"
 	"io/ioutil"
 	"net/http"
@@ -30,6 +31,22 @@ func (c *Client) BuildSignupRequest(ctx context.Context, v interface{}) (*http.R
 	}
 
 	return req, nil
+}
+
+// EncodeSignupRequest returns an encoder for requests sent to the account
+// signup server.
+func EncodeSignupRequest(encoder func(*http.Request) goahttp.Encoder) func(*http.Request, interface{}) error {
+	return func(req *http.Request, v interface{}) error {
+		p, ok := v.(*account.SignupPayload)
+		if !ok {
+			return goahttp.ErrInvalidType("account", "signup", "*account.SignupPayload", v)
+		}
+		body := NewSignupRequestBody(p)
+		if err := encoder(req).Encode(&body); err != nil {
+			return goahttp.ErrEncodingError("account", "signup", err)
+		}
+		return nil
+	}
 }
 
 // DecodeSignupResponse returns a decoder for responses returned by the account

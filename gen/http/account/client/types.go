@@ -11,9 +11,25 @@ import (
 	account "calcsvc/gen/account"
 )
 
+// SignupRequestBody is the type of the "account" service "signup" endpoint
+// HTTP request body.
+type SignupRequestBody struct {
+	// ID token from google
+	IDToken string `form:"id_token" json:"id_token" xml:"id_token"`
+}
+
 // SignupUnauthorizedResponseBody is the type of the "account" service "signup"
 // endpoint HTTP response body for the "unauthorized" error.
 type SignupUnauthorizedResponseBody string
+
+// NewSignupRequestBody builds the HTTP request body from the payload of the
+// "signup" endpoint of the "account" service.
+func NewSignupRequestBody(p *account.SignupPayload) *SignupRequestBody {
+	body := &SignupRequestBody{
+		IDToken: p.IDToken,
+	}
+	return body
+}
 
 // NewSignupUnauthorized builds a account service signup endpoint unauthorized
 // error.

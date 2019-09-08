@@ -9,11 +9,23 @@ package client
 
 import (
 	account "calcsvc/gen/account"
+	"encoding/json"
+	"fmt"
 )
 
 // BuildSignupPayload builds the payload for the account signup endpoint from
 // CLI flags.
-func BuildSignupPayload() (*account.SignupPayload, error) {
-	payload := &account.SignupPayload{}
-	return payload, nil
+func BuildSignupPayload(accountSignupBody string) (*account.SignupPayload, error) {
+	var err error
+	var body SignupRequestBody
+	{
+		err = json.Unmarshal([]byte(accountSignupBody), &body)
+		if err != nil {
+			return nil, fmt.Errorf("invalid JSON for body, example of valid JSON:\n%s", "'{\n      \"id_token\": \"Quam minima.\"\n   }'")
+		}
+	}
+	v := &account.SignupPayload{
+		IDToken: body.IDToken,
+	}
+	return v, nil
 }

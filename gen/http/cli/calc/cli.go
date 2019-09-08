@@ -31,8 +31,10 @@ calc add
 
 // UsageExamples produces an example of a valid invocation of the CLI tool.
 func UsageExamples() string {
-	return os.Args[0] + ` account signup` + "\n" +
-		os.Args[0] + ` calc add --a 7617773024289378824 --b 8614350958614154271 --token "Facere rem."` + "\n" +
+	return os.Args[0] + ` account signup --body '{
+      "id_token": "Quam minima."
+   }'` + "\n" +
+		os.Args[0] + ` calc add --a 3523480046783923250 --b 5487677923305002774 --token "Ut itaque sit corrupti velit."` + "\n" +
 		""
 }
 
@@ -48,7 +50,8 @@ func ParseEndpoint(
 	var (
 		accountFlags = flag.NewFlagSet("account", flag.ContinueOnError)
 
-		accountSignupFlags = flag.NewFlagSet("signup", flag.ExitOnError)
+		accountSignupFlags    = flag.NewFlagSet("signup", flag.ExitOnError)
+		accountSignupBodyFlag = accountSignupFlags.String("body", "REQUIRED", "")
 
 		calcFlags = flag.NewFlagSet("calc", flag.ContinueOnError)
 
@@ -136,7 +139,7 @@ func ParseEndpoint(
 			switch epn {
 			case "signup":
 				endpoint = c.Signup()
-				data, err = accountc.BuildSignupPayload()
+				data, err = accountc.BuildSignupPayload(*accountSignupBodyFlag)
 			}
 		case "calc":
 			c := calcc.NewClient(scheme, host, doer, enc, dec, restore)
@@ -168,12 +171,15 @@ Additional help:
 `, os.Args[0], os.Args[0])
 }
 func accountSignupUsage() {
-	fmt.Fprintf(os.Stderr, `%s [flags] account signup
+	fmt.Fprintf(os.Stderr, `%s [flags] account signup -body JSON
 
 Sign up  account with ID token from Google
+    -body JSON: 
 
 Example:
-    `+os.Args[0]+` account signup
+    `+os.Args[0]+` account signup --body '{
+      "id_token": "Quam minima."
+   }'
 `, os.Args[0])
 }
 
@@ -199,6 +205,6 @@ Add implements add.
     -token STRING: 
 
 Example:
-    `+os.Args[0]+` calc add --a 7617773024289378824 --b 8614350958614154271 --token "Facere rem."
+    `+os.Args[0]+` calc add --a 3523480046783923250 --b 5487677923305002774 --token "Ut itaque sit corrupti velit."
 `, os.Args[0])
 }

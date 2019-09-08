@@ -9,7 +9,16 @@ package server
 
 import (
 	account "calcsvc/gen/account"
+
+	goa "goa.design/goa/v3/pkg"
 )
+
+// SignupRequestBody is the type of the "account" service "signup" endpoint
+// HTTP request body.
+type SignupRequestBody struct {
+	// ID token from google
+	IDToken *string `form:"id_token,omitempty" json:"id_token,omitempty" xml:"id_token,omitempty"`
+}
 
 // SignupUnauthorizedResponseBody is the type of the "account" service "signup"
 // endpoint HTTP response body for the "unauthorized" error.
@@ -23,6 +32,17 @@ func NewSignupUnauthorizedResponseBody(res account.Unauthorized) SignupUnauthori
 }
 
 // NewSignupPayload builds a account service signup endpoint payload.
-func NewSignupPayload() *account.SignupPayload {
-	return &account.SignupPayload{}
+func NewSignupPayload(body *SignupRequestBody) *account.SignupPayload {
+	v := &account.SignupPayload{
+		IDToken: *body.IDToken,
+	}
+	return v
+}
+
+// ValidateSignupRequestBody runs the validations defined on SignupRequestBody
+func ValidateSignupRequestBody(body *SignupRequestBody) (err error) {
+	if body.IDToken == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("id_token", "body"))
+	}
+	return
 }

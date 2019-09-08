@@ -10,9 +10,11 @@ package server
 import (
 	account "calcsvc/gen/account"
 	"context"
+	"io"
 	"net/http"
 
 	goahttp "goa.design/goa/v3/http"
+	goa "goa.design/goa/v3/pkg"
 )
 
 // EncodeSignupResponse returns an encoder for responses returned by the
@@ -31,7 +33,22 @@ func EncodeSignupResponse(encoder func(context.Context, http.ResponseWriter) goa
 // signup endpoint.
 func DecodeSignupRequest(mux goahttp.Muxer, decoder func(*http.Request) goahttp.Decoder) func(*http.Request) (interface{}, error) {
 	return func(r *http.Request) (interface{}, error) {
-		payload := NewSignupPayload()
+		var (
+			body SignupRequestBody
+			err  error
+		)
+		err = decoder(r).Decode(&body)
+		if err != nil {
+			if err == io.EOF {
+				return nil, goa.MissingPayloadError()
+			}
+			return nil, goa.DecodePayloadError(err.Error())
+		}
+		err = ValidateSignupRequestBody(&body)
+		if err != nil {
+			return nil, err
+		}
+		payload := NewSignupPayload(&body)
 
 		return payload, nil
 	}
