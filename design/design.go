@@ -11,19 +11,39 @@ var _ = API("calc", func() {
 	})
 })
 
+// JWTAuth defines a security scheme that uses JWT tokens.
+var JWTAuth = JWTSecurity("jwt", func() {
+	Description(`Secures endpoint by requiring a valid JWT token retrieved via the signin endpoint. Supports scopes "api:read" and "api:write".`)
+	Scope("api:read", "Read-only access")
+	Scope("api:write", "Read and write access")
+})
+
 // Service describes a service
 var _ = Service("calc", func() {
 	Description("The calc service performs operations on numbers")
 	// Method describes a service method (endpoint)
 	Method("add", func() {
+
+		Security(JWTAuth, func() { // Use JWT and an API key to secure this endpoint.
+			Scope("api:read")  // Enforce presence of both "api:read"
+			Scope("api:write") // and "api:write" scopes in JWT claims.
+		})
+
 		// Payload describes the method payload
 		// Here the payload is an object that consists of two fields
 		Payload(func() {
 			// Attribute describes an object field
-			Attribute("a", Int, "Left operand")
-			Attribute("b", Int, "Right operand")
+			TokenField(1, "token", String, func() {
+				Description("JWT used for authentication")
+			})
+			TokenField(2, "a", Int, func() {
+				Description("Left operand")
+			})
+			TokenField(3, "b", Int, func() {
+				Description("Right operand")
+			})
 			// Both attributes must be provided when invoking "add"
-			Required("a", "b")
+			Required("token", "a", "b")
 		})
 		// Result describes the method result
 		// Here the result is a simple integer value
@@ -44,4 +64,32 @@ var _ = Service("openapi", func() {
 	// Serve the file with relative path ../../gen/http/openapi.json for
 	// requests sent to /swagger.json.
 	Files("/swagger.json", "../../gen/http/openapi.json")
+})
+
+var _ = Service("account", func() {
+	Description("Create and delete account")
+
+	Error("unauthorized", String, "Credentials are invalid")
+
+	HTTP(func() {
+		Response("unauthorized", StatusUnauthorized)
+	})
+
+	Method("signup", func() {
+		Description("Sign up  account with ID token from Google")
+
+		Payload(func() {
+			PasswordField(2, "id_token", String, "ID token from google")
+			Required("id_token")
+		})
+
+		Result(String)
+
+		HTTP(func() {
+			POST("/signup")
+			Response(StatusOK)
+		})
+
+	})
+
 })
