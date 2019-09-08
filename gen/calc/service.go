@@ -9,12 +9,20 @@ package calc
 
 import (
 	"context"
+
+	"goa.design/goa/v3/security"
 )
 
 // The calc service performs operations on numbers
 type Service interface {
 	// Add implements add.
 	Add(context.Context, *AddPayload) (res int, err error)
+}
+
+// Auther defines the authorization functions to be implemented by the service.
+type Auther interface {
+	// JWTAuth implements the authorization logic for the JWT security scheme.
+	JWTAuth(ctx context.Context, token string, schema *security.JWTScheme) (context.Context, error)
 }
 
 // ServiceName is the name of the service as defined in the design. This is the
@@ -29,6 +37,8 @@ var MethodNames = [1]string{"add"}
 
 // AddPayload is the payload type of the calc service add method.
 type AddPayload struct {
+	// JWT used for authentication
+	Token string
 	// Left operand
 	A int
 	// Right operand

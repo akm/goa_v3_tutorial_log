@@ -11,6 +11,7 @@ import (
 	"context"
 
 	goa "goa.design/goa/v3/pkg"
+	"goa.design/goa/v3/security"
 )
 
 // Endpoints wraps the "calc" service endpoints.
@@ -20,8 +21,10 @@ type Endpoints struct {
 
 // NewEndpoints wraps the methods of the "calc" service with endpoints.
 func NewEndpoints(s Service) *Endpoints {
+	// Casting service to Auther interface
+	a := s.(Auther)
 	return &Endpoints{
-		Add: NewAddEndpoint(s),
+		Add: NewAddEndpoint(s, a.JWTAuth),
 	}
 }
 
@@ -32,9 +35,19 @@ func (e *Endpoints) Use(m func(goa.Endpoint) goa.Endpoint) {
 
 // NewAddEndpoint returns an endpoint function that calls the method "add" of
 // service "calc".
-func NewAddEndpoint(s Service) goa.Endpoint {
+func NewAddEndpoint(s Service, authJWTFn security.AuthJWTFunc) goa.Endpoint {
 	return func(ctx context.Context, req interface{}) (interface{}, error) {
 		p := req.(*AddPayload)
+		var err error
+		sc := security.JWTScheme{
+			Name:           "jwt",
+			Scopes:         []string{"api:read", "api:write"},
+			RequiredScopes: []string{"api:read", "api:write"},
+		}
+		ctx, err = authJWTFn(ctx, p.Token, &sc)
+		if err != nil {
+			return nil, err
+		}
 		return s.Add(ctx, p)
 	}
 }

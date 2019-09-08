@@ -45,6 +45,18 @@ func (c *Client) BuildAddRequest(ctx context.Context, v interface{}) (*http.Requ
 	return req, nil
 }
 
+// EncodeAddRequest returns an encoder for requests sent to the calc add server.
+func EncodeAddRequest(encoder func(*http.Request) goahttp.Encoder) func(*http.Request, interface{}) error {
+	return func(req *http.Request, v interface{}) error {
+		p, ok := v.(*calc.AddPayload)
+		if !ok {
+			return goahttp.ErrInvalidType("calc", "add", "*calc.AddPayload", v)
+		}
+		req.Header.Set("Authorization", p.Token)
+		return nil
+	}
+}
+
 // DecodeAddResponse returns a decoder for responses returned by the calc add
 // endpoint. restoreBody controls whether the response body should be restored
 // after having been read.

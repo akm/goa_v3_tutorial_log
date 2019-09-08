@@ -14,7 +14,7 @@ import (
 )
 
 // BuildAddPayload builds the payload for the calc add endpoint from CLI flags.
-func BuildAddPayload(calcAddA string, calcAddB string) (*calc.AddPayload, error) {
+func BuildAddPayload(calcAddA string, calcAddB string, calcAddToken string) (*calc.AddPayload, error) {
 	var err error
 	var a int
 	{
@@ -34,9 +34,14 @@ func BuildAddPayload(calcAddA string, calcAddB string) (*calc.AddPayload, error)
 			return nil, fmt.Errorf("invalid value for b, must be INT")
 		}
 	}
+	var token string
+	{
+		token = calcAddToken
+	}
 	payload := &calc.AddPayload{
-		A: a,
-		B: b,
+		A:     a,
+		B:     b,
+		Token: token,
 	}
 	return payload, nil
 }

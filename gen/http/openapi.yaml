@@ -18,6 +18,11 @@ paths:
       tags:
       - calc
       summary: add calc
+      description: |2-
+
+        **Required security scopes for jwt**:
+          * `api:read`
+          * `api:write`
       operationId: calc#add
       parameters:
       - name: a
@@ -30,12 +35,37 @@ paths:
         description: Right operand
         required: true
         type: integer
+      - name: Authorization
+        in: header
+        description: JWT used for authentication
+        required: true
+        type: string
       responses:
         "200":
           description: OK response.
           schema:
             type: integer
             format: int64
+      schemes:
+      - http
+      security:
+      - jwt_header_Authorization: []
+  /signup:
+    post:
+      tags:
+      - account
+      summary: signup account
+      description: Sign up  account with ID token from Google
+      operationId: account#signup
+      responses:
+        "200":
+          description: OK response.
+          schema:
+            type: string
+        "401":
+          description: Unauthorized response.
+          schema:
+            $ref: '#/definitions/AccountSignupUnauthorizedResponseBody'
       schemes:
       - http
   /swagger.json:
@@ -49,3 +79,20 @@ paths:
             type: file
       schemes:
       - http
+definitions:
+  AccountSignupUnauthorizedResponseBody:
+    title: AccountSignupUnauthorizedResponseBody
+    type: string
+    description: Credentials are invalid
+    example: Non et.
+securityDefinitions:
+  jwt_header_Authorization:
+    type: apiKey
+    description: |-
+      Secures endpoint by requiring a valid JWT token retrieved via the signin endpoint. Supports scopes "api:read" and "api:write".
+
+      **Security Scopes**:
+        * `api:read`: Read-only access
+        * `api:write`: Read and write access
+    name: Authorization
+    in: header

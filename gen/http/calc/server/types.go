@@ -12,9 +12,10 @@ import (
 )
 
 // NewAddPayload builds a calc service add endpoint payload.
-func NewAddPayload(a int, b int) *calc.AddPayload {
+func NewAddPayload(a int, b int, token string) *calc.AddPayload {
 	return &calc.AddPayload{
-		A: a,
-		B: b,
+		A:     a,
+		B:     b,
+		Token: token,
 	}
 }

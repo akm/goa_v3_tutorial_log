@@ -8,6 +8,7 @@
 package cli
 
 import (
+	accountc "calcsvc/gen/http/account/client"
 	calcc "calcsvc/gen/http/calc/client"
 	"flag"
 	"fmt"
@@ -23,13 +24,15 @@ import (
 //    command (subcommand1|subcommand2|...)
 //
 func UsageCommands() string {
-	return `calc add
+	return `account signup
+calc add
 `
 }
 
 // UsageExamples produces an example of a valid invocation of the CLI tool.
 func UsageExamples() string {
-	return os.Args[0] + ` calc add --a 5952269320165453119 --b 1828520165265779840` + "\n" +
+	return os.Args[0] + ` account signup` + "\n" +
+		os.Args[0] + ` calc add --a 7617773024289378824 --b 8614350958614154271 --token "Facere rem."` + "\n" +
 		""
 }
 
@@ -43,12 +46,20 @@ func ParseEndpoint(
 	restore bool,
 ) (goa.Endpoint, interface{}, error) {
 	var (
+		accountFlags = flag.NewFlagSet("account", flag.ContinueOnError)
+
+		accountSignupFlags = flag.NewFlagSet("signup", flag.ExitOnError)
+
 		calcFlags = flag.NewFlagSet("calc", flag.ContinueOnError)
 
-		calcAddFlags = flag.NewFlagSet("add", flag.ExitOnError)
-		calcAddAFlag = calcAddFlags.String("a", "REQUIRED", "Left operand")
-		calcAddBFlag = calcAddFlags.String("b", "REQUIRED", "Right operand")
+		calcAddFlags     = flag.NewFlagSet("add", flag.ExitOnError)
+		calcAddAFlag     = calcAddFlags.String("a", "REQUIRED", "Left operand")
+		calcAddBFlag     = calcAddFlags.String("b", "REQUIRED", "Right operand")
+		calcAddTokenFlag = calcAddFlags.String("token", "REQUIRED", "")
 	)
+	accountFlags.Usage = accountUsage
+	accountSignupFlags.Usage = accountSignupUsage
+
 	calcFlags.Usage = calcUsage
 	calcAddFlags.Usage = calcAddUsage
 
@@ -67,6 +78,8 @@ func ParseEndpoint(
 	{
 		svcn = flag.Arg(0)
 		switch svcn {
+		case "account":
+			svcf = accountFlags
 		case "calc":
 			svcf = calcFlags
 		default:
@@ -84,6 +97,13 @@ func ParseEndpoint(
 	{
 		epn = svcf.Arg(0)
 		switch svcn {
+		case "account":
+			switch epn {
+			case "signup":
+				epf = accountSignupFlags
+
+			}
+
 		case "calc":
 			switch epn {
 			case "add":
@@ -111,12 +131,19 @@ func ParseEndpoint(
 	)
 	{
 		switch svcn {
+		case "account":
+			c := accountc.NewClient(scheme, host, doer, enc, dec, restore)
+			switch epn {
+			case "signup":
+				endpoint = c.Signup()
+				data, err = accountc.BuildSignupPayload()
+			}
 		case "calc":
 			c := calcc.NewClient(scheme, host, doer, enc, dec, restore)
 			switch epn {
 			case "add":
 				endpoint = c.Add()
-				data, err = calcc.BuildAddPayload(*calcAddAFlag, *calcAddBFlag)
+				data, err = calcc.BuildAddPayload(*calcAddAFlag, *calcAddBFlag, *calcAddTokenFlag)
 			}
 		}
 	}
@@ -125,6 +152,29 @@ func ParseEndpoint(
 	}
 
 	return endpoint, data, nil
+}
+
+// accountUsage displays the usage of the account command and its subcommands.
+func accountUsage() {
+	fmt.Fprintf(os.Stderr, `Create and delete account
+Usage:
+    %s [globalflags] account COMMAND [flags]
+
+COMMAND:
+    signup: Sign up  account with ID token from Google
+
+Additional help:
+    %s account COMMAND --help
+`, os.Args[0], os.Args[0])
+}
+func accountSignupUsage() {
+	fmt.Fprintf(os.Stderr, `%s [flags] account signup
+
+Sign up  account with ID token from Google
+
+Example:
+    `+os.Args[0]+` account signup
+`, os.Args[0])
 }
 
 // calcUsage displays the usage of the calc command and its subcommands.
@@ -141,13 +191,14 @@ Additional help:
 `, os.Args[0], os.Args[0])
 }
 func calcAddUsage() {
-	fmt.Fprintf(os.Stderr, `%s [flags] calc add -a INT -b INT
+	fmt.Fprintf(os.Stderr, `%s [flags] calc add -a INT -b INT -token STRING
 
 Add implements add.
     -a INT: Left operand
     -b INT: Right operand
+    -token STRING: 
 
 Example:
-    `+os.Args[0]+` calc add --a 5952269320165453119 --b 1828520165265779840
+    `+os.Args[0]+` calc add --a 7617773024289378824 --b 8614350958614154271 --token "Facere rem."
 `, os.Args[0])
 }
