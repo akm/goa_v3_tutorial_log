@@ -79,7 +79,7 @@ var _ = Service("account", func() {
 		Description("Sign up  account with ID token from Google")
 
 		Payload(func() {
-			PasswordField(2, "id_token", String, "ID token from google")
+			Attribute("id_token", String, "ID token from google")
 			Required("id_token")
 		})
 
