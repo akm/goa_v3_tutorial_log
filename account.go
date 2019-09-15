@@ -1,4 +1,4 @@
-package calcapi
+package calcsvc
 
 import (
 	account "calcsvc/gen/account"
@@ -7,6 +7,9 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"calcsvc/account/model"
+	"calcsvc/account/store"
 
 	"google.golang.org/api/oauth2/v2"
 
@@ -49,9 +52,22 @@ func (s *accountsrvc) Signup(ctx context.Context, p *account.SignupPayload) (res
 		"scopes": []string{"api:read", "api:write"},
 	})
 	if t, e := token.SignedString(jwtSignatureKey); e != nil {
-		err = err
+		err = e
+		return
 	} else {
 		res = t
+	}
+
+	m := &accountmodel.Account{
+		Email:    tokenInfo.Email,
+		JwtToken: res,
+	}
+
+	store := &accountstore.AccountStore{}
+	if _, e := store.Put(ctx, m); e != nil {
+		s.logger.Printf("Failed to save account because of [%T] %v\n", e, e)
+		err = e
+		return
 	}
 
 	return
