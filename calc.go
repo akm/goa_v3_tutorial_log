@@ -1,4 +1,4 @@
-package calcapi
+package calcsvc
 
 import (
 	calc "calcsvc/gen/calc"

@@ -1,4 +1,4 @@
-package calcapi
+package calcsvc
 
 import (
 	openapi "calcsvc/gen/openapi"
