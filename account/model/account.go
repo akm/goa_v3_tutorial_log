@@ -1,6 +1,7 @@
 package accountmodel
 
 type Account struct {
-	Email    string `datastore:"email" boom:"id"`
-	JwtToken string `datastore:"jwt_token"`
+	ID       int64 `datastore:"-" boom:"id"`
+	Email    string
+	JwtToken string
 }
