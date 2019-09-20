@@ -13,9 +13,25 @@ var _ = API("calc", func() {
 	})
 })
 
+// JWTAuth defines a security scheme that uses JWT tokens.
+var JWTAuth = JWTSecurity("jwt", func() {
+	Description(`Secures endpoint by requiring a valid JWT token retrieved via the signin endpoint. Supports scopes "api:read".`)
+	Scope("api:read", "Read-only access")
+	Scope("api:write", "Read and write access")
+})
+
 // Service describes a service
 var _ = Service("calc", func() {
 	Description("The calc service performs operations on numbers")
+
+	Error("unauthorized", String, "Credentials are invalid")
+	Error("invalid-scopes", String, "Token scopes are invalid")
+
+	HTTP(func() {
+		Response("unauthorized", StatusUnauthorized)
+		Response("invalid-scopes", StatusForbidden)
+	})
+
 	// Method describes a service method (endpoint)
 	Method("add", func() {
 		// Payload describes the method payload
@@ -40,6 +56,50 @@ var _ = Service("calc", func() {
 			Response(StatusOK)
 		})
 	})
+
+	Method("multiply", func() {
+		Security(JWTAuth, func() { // Use JWT to auth requests to this endpoint.
+			Scope("api:read") // Enforce presence of "api:read" scope in JWT claims.
+		})
+
+		Payload(func() {
+			Field(1, "a", Int, func() { Description("Left operand") })
+			Field(2, "b", Int, func() { Description("Right operand") })
+			TokenField(3, "token", String, func() {
+				Description("JWT used for authentication")
+			})
+			Required("a", "b", "token")
+		})
+		Result(Int)
+
+		HTTP(func() {
+			GET("/multiply/{a}/{b}")
+			Response(StatusOK)
+		})
+	})
+
+	Method("devide", func() {
+		Security(JWTAuth, func() { // Use JWT to auth requests to this endpoint.
+			Scope("api:read")  // Enforce presence of "api:read" scope in JWT claims.
+			Scope("api:write") // and "api:write" scopes in JWT claims.
+		})
+
+		Payload(func() {
+			Field(1, "a", Int, func() { Description("Left operand") })
+			Field(2, "b", Int, func() { Description("Right operand") })
+			TokenField(3, "token", String, func() {
+				Description("JWT used for authentication")
+			})
+			Required("a", "b", "token")
+		})
+		Result(Int)
+
+		HTTP(func() {
+			GET("/devide/{a}/{b}")
+			Response(StatusOK)
+		})
+	})
+
 })
 
 var _ = Service("openapi", func() {
