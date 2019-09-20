@@ -21,6 +21,12 @@ var JWTAuth = JWTSecurity("jwt", func() {
 // Service describes a service
 var _ = Service("calc", func() {
 	Description("The calc service performs operations on numbers")
+
+	Error("unauthorized", String, "Credentials are invalid")
+	HTTP(func() {
+		Response("unauthorized", StatusUnauthorized)
+	})
+
 	// Method describes a service method (endpoint)
 	Method("add", func() {
 
@@ -48,6 +54,9 @@ var _ = Service("calc", func() {
 		// Result describes the method result
 		// Here the result is a simple integer value
 		Result(Int)
+
+		Error("invalid-scopes", String, "Token scopes are invalid")
+
 		// HTTP describes the HTTP transport mapping
 		HTTP(func() {
 			// Requests to the service consist of HTTP GET requests
@@ -56,6 +65,7 @@ var _ = Service("calc", func() {
 			// Responses use a "200 OK" HTTP status
 			// The result is encoded in the response body
 			Response(StatusOK)
+			Response("invalid-scopes", StatusForbidden)
 		})
 	})
 })
@@ -70,7 +80,6 @@ var _ = Service("account", func() {
 	Description("Create and delete account")
 
 	Error("unauthorized", String, "Credentials are invalid")
-
 	HTTP(func() {
 		Response("unauthorized", StatusUnauthorized)
 	})
