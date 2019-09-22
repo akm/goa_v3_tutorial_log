@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
+	"strings"
 	"sync"
 )
 
@@ -17,11 +18,11 @@ func main() {
 	// Define command line flags, add any other flag required to configure the
 	// service.
 	var (
-		hostF   = flag.String("host", "", "Server host (valid values: localhost)")
-		domainF = flag.String("domain", "", "Host domain name (overrides host domain specified in service design)")
-		// httpPortF = flag.String("http-port", "", "HTTP port (overrides host HTTP port specified in service design)")
-		secureF = flag.Bool("secure", false, "Use secure scheme (https or grpcs)")
-		dbgF    = flag.Bool("debug", false, "Log request and response bodies")
+		hostF     = flag.String("host", "production", "Server host (valid values: production, development)")
+		domainF   = flag.String("domain", "", "Host domain name (overrides host domain specified in service design)")
+		httpPortF = flag.String("http-port", "", "HTTP port (overrides host HTTP port specified in service design)")
+		secureF   = flag.Bool("secure", false, "Use secure scheme (https or grpcs)")
+		dbgF      = flag.Bool("debug", false, "Log request and response bodies")
 	)
 	flag.Parse()
 
@@ -67,9 +68,9 @@ func main() {
 
 	// Start the servers and send errors (if any) to the error channel.
 	switch *hostF {
-	case "localhost":
+	case "production":
 		{
-			addr := "http://localhost:8088"
+			addr := "http://localhost"
 			u, err := url.Parse(addr)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "invalid URL %#v: %s", addr, err)
@@ -81,32 +82,48 @@ func main() {
 			if *domainF != "" {
 				u.Host = *domainF
 			}
-
-			port := os.Getenv("PORT")
-			logger.Printf("$PORT %q\n", port)
-
-			if port == "" {
-				port = "8080"
+			if *httpPortF != "" {
+				h := strings.Split(u.Host, ":")[0]
+				u.Host = h + ":" + *httpPortF
+			} else if u.Port() == "" {
+				port := os.Getenv("PORT")
+				if port == "" {
+					port = "80"
+				}
+				u.Host += (":" + port)
 			}
-			u.Host += port
-
 			handleHTTPServer(ctx, u, calcEndpoints, &wg, errc, logger, *dbgF)
 		}
 
-	case "":
+	case "development":
 		{
-			port := os.Getenv("PORT")
-			logger.Printf("$PORT %q\n", port)
-
-			if port == "" {
-				port = "8080"
+			addr := "http://localhost:8080"
+			u, err := url.Parse(addr)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "invalid URL %#v: %s", addr, err)
+				os.Exit(1)
 			}
-
-			handleHTTPServer(ctx, &url.URL{Host: fmt.Sprintf(":%s", port)}, calcEndpoints, &wg, errc, logger, *dbgF)
+			if *secureF {
+				u.Scheme = "https"
+			}
+			if *domainF != "" {
+				u.Host = *domainF
+			}
+			if *httpPortF != "" {
+				h := strings.Split(u.Host, ":")[0]
+				u.Host = h + ":" + *httpPortF
+			} else if u.Port() == "" {
+				port := os.Getenv("PORT")
+				if port == "" {
+					port = "80"
+				}
+				u.Host += (":" + port)
+			}
+			handleHTTPServer(ctx, u, calcEndpoints, &wg, errc, logger, *dbgF)
 		}
 
 	default:
-		fmt.Fprintf(os.Stderr, "invalid host argument: %q (valid hosts: localhost)", *hostF)
+		fmt.Fprintf(os.Stderr, "invalid host argument: %q (valid hosts: production|development)", *hostF)
 	}
 
 	// Wait for signal.

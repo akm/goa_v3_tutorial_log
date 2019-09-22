@@ -2,10 +2,8 @@ package main
 
 import (
 	calc "calcsvc/gen/calc"
-
 	calcsvr "calcsvc/gen/http/calc/server"
 	openapisvr "calcsvc/gen/http/openapi/server"
-
 	"context"
 	"log"
 	"net/http"
@@ -52,11 +50,13 @@ func handleHTTPServer(ctx context.Context, u *url.URL, calcEndpoints *calc.Endpo
 	// the service input and output data structures to HTTP requests and
 	// responses.
 	var (
-		calcServer *calcsvr.Server
+		calcServer    *calcsvr.Server
+		openapiServer *openapisvr.Server
 	)
 	{
 		eh := errorHandler(logger)
 		calcServer = calcsvr.New(calcEndpoints, mux, dec, enc, eh)
+		openapiServer = openapisvr.New(nil, mux, dec, enc, eh)
 	}
 	// Configure the mux.
 	calcsvr.Mount(mux, calcServer)
@@ -77,6 +77,9 @@ func handleHTTPServer(ctx context.Context, u *url.URL, calcEndpoints *calc.Endpo
 	// configure the server as required by your service.
 	srv := &http.Server{Addr: u.Host, Handler: handler}
 	for _, m := range calcServer.Mounts {
+		logger.Printf("HTTP %q mounted on %s %s", m.Method, m.Verb, m.Pattern)
+	}
+	for _, m := range openapiServer.Mounts {
 		logger.Printf("HTTP %q mounted on %s %s", m.Method, m.Verb, m.Pattern)
 	}
 
