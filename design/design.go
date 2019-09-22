@@ -7,7 +7,9 @@ var _ = API("calc", func() {
 	Title("Calculator Service")
 	Description("HTTP service for adding numbers, a goa teaser")
 	Server("calc", func() {
-		Host("localhost", func() { URI("http://localhost:8088") })
+		// production must be the first host to work as default on GAE
+		Host("production", func() { URI("http://localhost") })
+		Host("development", func() { URI("http://localhost:8080") })
 	})
 })
 
