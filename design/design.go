@@ -57,19 +57,21 @@ var _ = Service("calc", func() {
 		})
 	})
 
+	caclPayloadWithToken := func() {
+		Field(1, "a", Int, func() { Description("Left operand") })
+		Field(2, "b", Int, func() { Description("Right operand") })
+		TokenField(3, "token", String, func() {
+			Description("JWT used for authentication")
+		})
+		Required("a", "b", "token")
+	}
+
 	Method("multiply", func() {
 		Security(JWTAuth, func() { // Use JWT to auth requests to this endpoint.
 			Scope("api:read") // Enforce presence of "api:read" scope in JWT claims.
 		})
 
-		Payload(func() {
-			Field(1, "a", Int, func() { Description("Left operand") })
-			Field(2, "b", Int, func() { Description("Right operand") })
-			TokenField(3, "token", String, func() {
-				Description("JWT used for authentication")
-			})
-			Required("a", "b", "token")
-		})
+		Payload(caclPayloadWithToken)
 		Result(Int)
 
 		HTTP(func() {
@@ -84,14 +86,7 @@ var _ = Service("calc", func() {
 			Scope("api:write") // and "api:write" scopes in JWT claims.
 		})
 
-		Payload(func() {
-			Field(1, "a", Int, func() { Description("Left operand") })
-			Field(2, "b", Int, func() { Description("Right operand") })
-			TokenField(3, "token", String, func() {
-				Description("JWT used for authentication")
-			})
-			Required("a", "b", "token")
-		})
+		Payload(caclPayloadWithToken)
 		Result(Int)
 
 		HTTP(func() {
