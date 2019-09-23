@@ -19,6 +19,7 @@ require (
 	github.com/smartystreets/assertions v1.0.1 // indirect
 	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337 // indirect
 	github.com/stretchr/testify v1.4.0 // indirect
+	github.com/tsg/gotpl v0.0.0-20150811134254-a4179fb207b3 // indirect
 	go.mongodb.org/mongo-driver v1.1.0 // indirect
 	goa.design/goa/v3 v3.0.3
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4 // indirect
