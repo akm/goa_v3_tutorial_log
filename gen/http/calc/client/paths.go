@@ -15,3 +15,13 @@ import (
 func AddCalcPath(a int, b int) string {
 	return fmt.Sprintf("/add/%v/%v", a, b)
 }
+
+// MultiplyCalcPath returns the URL path to the calc service multiply HTTP endpoint.
+func MultiplyCalcPath(a int, b int) string {
+	return fmt.Sprintf("/multiply/%v/%v", a, b)
+}
+
+// DevideCalcPath returns the URL path to the calc service devide HTTP endpoint.
+func DevideCalcPath(a int, b int) string {
+	return fmt.Sprintf("/devide/%v/%v", a, b)
+}

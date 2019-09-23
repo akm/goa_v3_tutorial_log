@@ -40,3 +40,71 @@ func BuildAddPayload(calcAddA string, calcAddB string) (*calc.AddPayload, error)
 	}
 	return payload, nil
 }
+
+// BuildMultiplyPayload builds the payload for the calc multiply endpoint from
+// CLI flags.
+func BuildMultiplyPayload(calcMultiplyA string, calcMultiplyB string, calcMultiplyToken string) (*calc.MultiplyPayload, error) {
+	var err error
+	var a int
+	{
+		var v int64
+		v, err = strconv.ParseInt(calcMultiplyA, 10, 64)
+		a = int(v)
+		if err != nil {
+			return nil, fmt.Errorf("invalid value for a, must be INT")
+		}
+	}
+	var b int
+	{
+		var v int64
+		v, err = strconv.ParseInt(calcMultiplyB, 10, 64)
+		b = int(v)
+		if err != nil {
+			return nil, fmt.Errorf("invalid value for b, must be INT")
+		}
+	}
+	var token string
+	{
+		token = calcMultiplyToken
+	}
+	payload := &calc.MultiplyPayload{
+		A:     a,
+		B:     b,
+		Token: token,
+	}
+	return payload, nil
+}
+
+// BuildDevidePayload builds the payload for the calc devide endpoint from CLI
+// flags.
+func BuildDevidePayload(calcDevideA string, calcDevideB string, calcDevideToken string) (*calc.DevidePayload, error) {
+	var err error
+	var a int
+	{
+		var v int64
+		v, err = strconv.ParseInt(calcDevideA, 10, 64)
+		a = int(v)
+		if err != nil {
+			return nil, fmt.Errorf("invalid value for a, must be INT")
+		}
+	}
+	var b int
+	{
+		var v int64
+		v, err = strconv.ParseInt(calcDevideB, 10, 64)
+		b = int(v)
+		if err != nil {
+			return nil, fmt.Errorf("invalid value for b, must be INT")
+		}
+	}
+	var token string
+	{
+		token = calcDevideToken
+	}
+	payload := &calc.DevidePayload{
+		A:     a,
+		B:     b,
+		Token: token,
+	}
+	return payload, nil
+}

@@ -15,13 +15,17 @@ import (
 
 // Client is the "calc" service client.
 type Client struct {
-	AddEndpoint goa.Endpoint
+	AddEndpoint      goa.Endpoint
+	MultiplyEndpoint goa.Endpoint
+	DevideEndpoint   goa.Endpoint
 }
 
 // NewClient initializes a "calc" service client given the endpoints.
-func NewClient(add goa.Endpoint) *Client {
+func NewClient(add, multiply, devide goa.Endpoint) *Client {
 	return &Client{
-		AddEndpoint: add,
+		AddEndpoint:      add,
+		MultiplyEndpoint: multiply,
+		DevideEndpoint:   devide,
 	}
 }
 
@@ -29,6 +33,26 @@ func NewClient(add goa.Endpoint) *Client {
 func (c *Client) Add(ctx context.Context, p *AddPayload) (res int, err error) {
 	var ires interface{}
 	ires, err = c.AddEndpoint(ctx, p)
+	if err != nil {
+		return
+	}
+	return ires.(int), nil
+}
+
+// Multiply calls the "multiply" endpoint of the "calc" service.
+func (c *Client) Multiply(ctx context.Context, p *MultiplyPayload) (res int, err error) {
+	var ires interface{}
+	ires, err = c.MultiplyEndpoint(ctx, p)
+	if err != nil {
+		return
+	}
+	return ires.(int), nil
+}
+
+// Devide calls the "devide" endpoint of the "calc" service.
+func (c *Client) Devide(ctx context.Context, p *DevidePayload) (res int, err error) {
+	var ires interface{}
+	ires, err = c.DevideEndpoint(ctx, p)
 	if err != nil {
 		return
 	}

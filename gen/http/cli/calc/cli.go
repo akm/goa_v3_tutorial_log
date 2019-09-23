@@ -8,6 +8,7 @@
 package cli
 
 import (
+	accountc "calcsvc/gen/http/account/client"
 	calcc "calcsvc/gen/http/calc/client"
 	"flag"
 	"fmt"
@@ -23,13 +24,15 @@ import (
 //    command (subcommand1|subcommand2|...)
 //
 func UsageCommands() string {
-	return `calc add
+	return `calc (add|multiply|devide)
+account signin
 `
 }
 
 // UsageExamples produces an example of a valid invocation of the CLI tool.
 func UsageExamples() string {
-	return os.Args[0] + ` calc add --a 5952269320165453119 --b 1828520165265779840` + "\n" +
+	return os.Args[0] + ` calc add --a 6642806206162570878 --b 8723986392256123438` + "\n" +
+		os.Args[0] + ` account signin --username "user" --password "password"` + "\n" +
 		""
 }
 
@@ -48,9 +51,30 @@ func ParseEndpoint(
 		calcAddFlags = flag.NewFlagSet("add", flag.ExitOnError)
 		calcAddAFlag = calcAddFlags.String("a", "REQUIRED", "Left operand")
 		calcAddBFlag = calcAddFlags.String("b", "REQUIRED", "Right operand")
+
+		calcMultiplyFlags     = flag.NewFlagSet("multiply", flag.ExitOnError)
+		calcMultiplyAFlag     = calcMultiplyFlags.String("a", "REQUIRED", "Left operand")
+		calcMultiplyBFlag     = calcMultiplyFlags.String("b", "REQUIRED", "Right operand")
+		calcMultiplyTokenFlag = calcMultiplyFlags.String("token", "REQUIRED", "")
+
+		calcDevideFlags     = flag.NewFlagSet("devide", flag.ExitOnError)
+		calcDevideAFlag     = calcDevideFlags.String("a", "REQUIRED", "Left operand")
+		calcDevideBFlag     = calcDevideFlags.String("b", "REQUIRED", "Right operand")
+		calcDevideTokenFlag = calcDevideFlags.String("token", "REQUIRED", "")
+
+		accountFlags = flag.NewFlagSet("account", flag.ContinueOnError)
+
+		accountSigninFlags        = flag.NewFlagSet("signin", flag.ExitOnError)
+		accountSigninUsernameFlag = accountSigninFlags.String("username", "REQUIRED", "Username used to perform signin")
+		accountSigninPasswordFlag = accountSigninFlags.String("password", "REQUIRED", "Password used to perform signin")
 	)
 	calcFlags.Usage = calcUsage
 	calcAddFlags.Usage = calcAddUsage
+	calcMultiplyFlags.Usage = calcMultiplyUsage
+	calcDevideFlags.Usage = calcDevideUsage
+
+	accountFlags.Usage = accountUsage
+	accountSigninFlags.Usage = accountSigninUsage
 
 	if err := flag.CommandLine.Parse(os.Args[1:]); err != nil {
 		return nil, nil, err
@@ -69,6 +93,8 @@ func ParseEndpoint(
 		switch svcn {
 		case "calc":
 			svcf = calcFlags
+		case "account":
+			svcf = accountFlags
 		default:
 			return nil, nil, fmt.Errorf("unknown service %q", svcn)
 		}
@@ -88,6 +114,19 @@ func ParseEndpoint(
 			switch epn {
 			case "add":
 				epf = calcAddFlags
+
+			case "multiply":
+				epf = calcMultiplyFlags
+
+			case "devide":
+				epf = calcDevideFlags
+
+			}
+
+		case "account":
+			switch epn {
+			case "signin":
+				epf = accountSigninFlags
 
 			}
 
@@ -117,6 +156,19 @@ func ParseEndpoint(
 			case "add":
 				endpoint = c.Add()
 				data, err = calcc.BuildAddPayload(*calcAddAFlag, *calcAddBFlag)
+			case "multiply":
+				endpoint = c.Multiply()
+				data, err = calcc.BuildMultiplyPayload(*calcMultiplyAFlag, *calcMultiplyBFlag, *calcMultiplyTokenFlag)
+			case "devide":
+				endpoint = c.Devide()
+				data, err = calcc.BuildDevidePayload(*calcDevideAFlag, *calcDevideBFlag, *calcDevideTokenFlag)
+			}
+		case "account":
+			c := accountc.NewClient(scheme, host, doer, enc, dec, restore)
+			switch epn {
+			case "signin":
+				endpoint = c.Signin()
+				data, err = accountc.BuildSigninPayload(*accountSigninUsernameFlag, *accountSigninPasswordFlag)
 			}
 		}
 	}
@@ -135,6 +187,8 @@ Usage:
 
 COMMAND:
     add: Add implements add.
+    multiply: Multiply implements multiply.
+    devide: Devide implements devide.
 
 Additional help:
     %s calc COMMAND --help
@@ -148,6 +202,57 @@ Add implements add.
     -b INT: Right operand
 
 Example:
-    `+os.Args[0]+` calc add --a 5952269320165453119 --b 1828520165265779840
+    `+os.Args[0]+` calc add --a 6642806206162570878 --b 8723986392256123438
+`, os.Args[0])
+}
+
+func calcMultiplyUsage() {
+	fmt.Fprintf(os.Stderr, `%s [flags] calc multiply -a INT -b INT -token STRING
+
+Multiply implements multiply.
+    -a INT: Left operand
+    -b INT: Right operand
+    -token STRING: 
+
+Example:
+    `+os.Args[0]+` calc multiply --a 3448989877641388488 --b 2788110747497692605 --token "Et eum aut adipisci temporibus."
+`, os.Args[0])
+}
+
+func calcDevideUsage() {
+	fmt.Fprintf(os.Stderr, `%s [flags] calc devide -a INT -b INT -token STRING
+
+Devide implements devide.
+    -a INT: Left operand
+    -b INT: Right operand
+    -token STRING: 
+
+Example:
+    `+os.Args[0]+` calc devide --a 8272531006444625870 --b 8983579422360671298 --token "Eaque consectetur excepturi eaque."
+`, os.Args[0])
+}
+
+// accountUsage displays the usage of the account command and its subcommands.
+func accountUsage() {
+	fmt.Fprintf(os.Stderr, `Create and delete account
+Usage:
+    %s [globalflags] account COMMAND [flags]
+
+COMMAND:
+    signin: Creates a valid JWT
+
+Additional help:
+    %s account COMMAND --help
+`, os.Args[0], os.Args[0])
+}
+func accountSigninUsage() {
+	fmt.Fprintf(os.Stderr, `%s [flags] account signin -username STRING -password STRING
+
+Creates a valid JWT
+    -username STRING: Username used to perform signin
+    -password STRING: Password used to perform signin
+
+Example:
+    `+os.Args[0]+` account signin --username "user" --password "password"
 `, os.Args[0])
 }

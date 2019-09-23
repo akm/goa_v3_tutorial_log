@@ -48,6 +48,10 @@ func (c *Client) BuildAddRequest(ctx context.Context, v interface{}) (*http.Requ
 // DecodeAddResponse returns a decoder for responses returned by the calc add
 // endpoint. restoreBody controls whether the response body should be restored
 // after having been read.
+// DecodeAddResponse may return the following errors:
+//	- "invalid-scopes" (type calc.InvalidScopes): http.StatusForbidden
+//	- "unauthorized" (type calc.Unauthorized): http.StatusUnauthorized
+//	- error: internal error
 func DecodeAddResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody bool) func(*http.Response) (interface{}, error) {
 	return func(resp *http.Response) (interface{}, error) {
 		if restoreBody {
@@ -73,9 +77,227 @@ func DecodeAddResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody
 				return nil, goahttp.ErrDecodingError("calc", "add", err)
 			}
 			return body, nil
+		case http.StatusForbidden:
+			var (
+				body AddInvalidScopesResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("calc", "add", err)
+			}
+			return nil, NewAddInvalidScopes(body)
+		case http.StatusUnauthorized:
+			var (
+				body AddUnauthorizedResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("calc", "add", err)
+			}
+			return nil, NewAddUnauthorized(body)
 		default:
 			body, _ := ioutil.ReadAll(resp.Body)
 			return nil, goahttp.ErrInvalidResponse("calc", "add", resp.StatusCode, string(body))
+		}
+	}
+}
+
+// BuildMultiplyRequest instantiates a HTTP request object with method and path
+// set to call the "calc" service "multiply" endpoint
+func (c *Client) BuildMultiplyRequest(ctx context.Context, v interface{}) (*http.Request, error) {
+	var (
+		a int
+		b int
+	)
+	{
+		p, ok := v.(*calc.MultiplyPayload)
+		if !ok {
+			return nil, goahttp.ErrInvalidType("calc", "multiply", "*calc.MultiplyPayload", v)
+		}
+		a = p.A
+		b = p.B
+	}
+	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: MultiplyCalcPath(a, b)}
+	req, err := http.NewRequest("GET", u.String(), nil)
+	if err != nil {
+		return nil, goahttp.ErrInvalidURL("calc", "multiply", u.String(), err)
+	}
+	if ctx != nil {
+		req = req.WithContext(ctx)
+	}
+
+	return req, nil
+}
+
+// EncodeMultiplyRequest returns an encoder for requests sent to the calc
+// multiply server.
+func EncodeMultiplyRequest(encoder func(*http.Request) goahttp.Encoder) func(*http.Request, interface{}) error {
+	return func(req *http.Request, v interface{}) error {
+		p, ok := v.(*calc.MultiplyPayload)
+		if !ok {
+			return goahttp.ErrInvalidType("calc", "multiply", "*calc.MultiplyPayload", v)
+		}
+		req.Header.Set("Authorization", p.Token)
+		return nil
+	}
+}
+
+// DecodeMultiplyResponse returns a decoder for responses returned by the calc
+// multiply endpoint. restoreBody controls whether the response body should be
+// restored after having been read.
+// DecodeMultiplyResponse may return the following errors:
+//	- "invalid-scopes" (type calc.InvalidScopes): http.StatusForbidden
+//	- "unauthorized" (type calc.Unauthorized): http.StatusUnauthorized
+//	- error: internal error
+func DecodeMultiplyResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody bool) func(*http.Response) (interface{}, error) {
+	return func(resp *http.Response) (interface{}, error) {
+		if restoreBody {
+			b, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				return nil, err
+			}
+			resp.Body = ioutil.NopCloser(bytes.NewBuffer(b))
+			defer func() {
+				resp.Body = ioutil.NopCloser(bytes.NewBuffer(b))
+			}()
+		} else {
+			defer resp.Body.Close()
+		}
+		switch resp.StatusCode {
+		case http.StatusOK:
+			var (
+				body int
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("calc", "multiply", err)
+			}
+			return body, nil
+		case http.StatusForbidden:
+			var (
+				body MultiplyInvalidScopesResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("calc", "multiply", err)
+			}
+			return nil, NewMultiplyInvalidScopes(body)
+		case http.StatusUnauthorized:
+			var (
+				body MultiplyUnauthorizedResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("calc", "multiply", err)
+			}
+			return nil, NewMultiplyUnauthorized(body)
+		default:
+			body, _ := ioutil.ReadAll(resp.Body)
+			return nil, goahttp.ErrInvalidResponse("calc", "multiply", resp.StatusCode, string(body))
+		}
+	}
+}
+
+// BuildDevideRequest instantiates a HTTP request object with method and path
+// set to call the "calc" service "devide" endpoint
+func (c *Client) BuildDevideRequest(ctx context.Context, v interface{}) (*http.Request, error) {
+	var (
+		a int
+		b int
+	)
+	{
+		p, ok := v.(*calc.DevidePayload)
+		if !ok {
+			return nil, goahttp.ErrInvalidType("calc", "devide", "*calc.DevidePayload", v)
+		}
+		a = p.A
+		b = p.B
+	}
+	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: DevideCalcPath(a, b)}
+	req, err := http.NewRequest("GET", u.String(), nil)
+	if err != nil {
+		return nil, goahttp.ErrInvalidURL("calc", "devide", u.String(), err)
+	}
+	if ctx != nil {
+		req = req.WithContext(ctx)
+	}
+
+	return req, nil
+}
+
+// EncodeDevideRequest returns an encoder for requests sent to the calc devide
+// server.
+func EncodeDevideRequest(encoder func(*http.Request) goahttp.Encoder) func(*http.Request, interface{}) error {
+	return func(req *http.Request, v interface{}) error {
+		p, ok := v.(*calc.DevidePayload)
+		if !ok {
+			return goahttp.ErrInvalidType("calc", "devide", "*calc.DevidePayload", v)
+		}
+		req.Header.Set("Authorization", p.Token)
+		return nil
+	}
+}
+
+// DecodeDevideResponse returns a decoder for responses returned by the calc
+// devide endpoint. restoreBody controls whether the response body should be
+// restored after having been read.
+// DecodeDevideResponse may return the following errors:
+//	- "invalid-scopes" (type calc.InvalidScopes): http.StatusForbidden
+//	- "unauthorized" (type calc.Unauthorized): http.StatusUnauthorized
+//	- error: internal error
+func DecodeDevideResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody bool) func(*http.Response) (interface{}, error) {
+	return func(resp *http.Response) (interface{}, error) {
+		if restoreBody {
+			b, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				return nil, err
+			}
+			resp.Body = ioutil.NopCloser(bytes.NewBuffer(b))
+			defer func() {
+				resp.Body = ioutil.NopCloser(bytes.NewBuffer(b))
+			}()
+		} else {
+			defer resp.Body.Close()
+		}
+		switch resp.StatusCode {
+		case http.StatusOK:
+			var (
+				body int
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("calc", "devide", err)
+			}
+			return body, nil
+		case http.StatusForbidden:
+			var (
+				body DevideInvalidScopesResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("calc", "devide", err)
+			}
+			return nil, NewDevideInvalidScopes(body)
+		case http.StatusUnauthorized:
+			var (
+				body DevideUnauthorizedResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("calc", "devide", err)
+			}
+			return nil, NewDevideUnauthorized(body)
+		default:
+			body, _ := ioutil.ReadAll(resp.Body)
+			return nil, goahttp.ErrInvalidResponse("calc", "devide", resp.StatusCode, string(body))
 		}
 	}
 }

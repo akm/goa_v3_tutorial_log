@@ -20,6 +20,7 @@ func NewCalc(logger *log.Logger) calc.Service {
 }
 
 type Calc struct {
+	M string
 	A int
 	B int
 	R int
@@ -28,26 +29,34 @@ type Calc struct {
 // Add implements add.
 func (s *calcsrvc) Add(ctx context.Context, p *calc.AddPayload) (res int, err error) {
 	s.logger.Print("calc.add")
-	res = p.A + p.B
+	return s.saveCalc(ctx, &Calc{"add", p.A, p.B, p.A + p.B})
+}
 
+// Multiply implements multiply.
+func (s *calcsrvc) Multiply(ctx context.Context, p *calc.MultiplyPayload) (res int, err error) {
+	s.logger.Print("calc.multiply")
+	return s.saveCalc(ctx, &Calc{"multiply", p.A, p.B, p.A * p.B})
+}
+
+// Devide implements devide.
+func (s *calcsrvc) Devide(ctx context.Context, p *calc.DevidePayload) (res int, err error) {
+	s.logger.Print("calc.devide")
+	return s.saveCalc(ctx, &Calc{"devide", p.A, p.B, p.A / p.B})
+}
+
+func (s *calcsrvc) saveCalc(ctx context.Context, c *Calc) (int, error) {
 	dsClient, err := datastore.NewClient(ctx, "")
 	if err != nil {
 		s.logger.Printf("Failed to get datastore client because of [%T] %+v", err, err)
-		return res, err
+		return 0, err
 	}
 
 	k := datastore.IncompleteKey("calcsvc", nil)
-	calc := &Calc{
-		A: p.A,
-		B: p.B,
-		R: res,
-	}
-	if key, err := dsClient.Put(ctx, k, calc); err != nil {
-		s.logger.Printf("Failed to put calculation %v into datastore client because of [%T] %+v", *calc, err, err)
-		return res, err
+	if key, err := dsClient.Put(ctx, k, c); err != nil {
+		s.logger.Printf("Failed to put calculation %v into datastore client because of [%T] %+v", *c, err, err)
+		return 0, err
 	} else {
-		s.logger.Printf("Calculation %v was saved successfully with key: %v", *calc, *key)
+		s.logger.Printf("Calculation %v was saved successfully with key: %v", *c, *key)
+		return c.R, nil
 	}
-
-	return
 }

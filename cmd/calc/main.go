@@ -2,6 +2,7 @@ package main
 
 import (
 	calcapi "calcsvc"
+	account "calcsvc/gen/account"
 	calc "calcsvc/gen/calc"
 	"context"
 	"flag"
@@ -36,19 +37,23 @@ func main() {
 
 	// Initialize the services.
 	var (
-		calcSvc calc.Service
+		calcSvc    calc.Service
+		accountSvc account.Service
 	)
 	{
 		calcSvc = calcapi.NewCalc(logger)
+		accountSvc = calcapi.NewAccount(logger)
 	}
 
 	// Wrap the services in endpoints that can be invoked from other services
 	// potentially running in different processes.
 	var (
-		calcEndpoints *calc.Endpoints
+		calcEndpoints    *calc.Endpoints
+		accountEndpoints *account.Endpoints
 	)
 	{
 		calcEndpoints = calc.NewEndpoints(calcSvc)
+		accountEndpoints = account.NewEndpoints(accountSvc)
 	}
 
 	// Create channel used by both the signal handler and server goroutines
@@ -92,7 +97,7 @@ func main() {
 				}
 				u.Host += (":" + port)
 			}
-			handleHTTPServer(ctx, u, calcEndpoints, &wg, errc, logger, *dbgF)
+			handleHTTPServer(ctx, u, calcEndpoints, accountEndpoints, &wg, errc, logger, *dbgF)
 		}
 
 	case "development":
@@ -119,7 +124,7 @@ func main() {
 				}
 				u.Host += (":" + port)
 			}
-			handleHTTPServer(ctx, u, calcEndpoints, &wg, errc, logger, *dbgF)
+			handleHTTPServer(ctx, u, calcEndpoints, accountEndpoints, &wg, errc, logger, *dbgF)
 		}
 
 	default:

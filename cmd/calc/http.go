@@ -1,7 +1,9 @@
 package main
 
 import (
+	account "calcsvc/gen/account"
 	calc "calcsvc/gen/calc"
+	accountsvr "calcsvc/gen/http/account/server"
 	calcsvr "calcsvc/gen/http/calc/server"
 	openapisvr "calcsvc/gen/http/openapi/server"
 	"context"
@@ -19,7 +21,7 @@ import (
 
 // handleHTTPServer starts configures and starts a HTTP server on the given
 // URL. It shuts down the server if any error is received in the error channel.
-func handleHTTPServer(ctx context.Context, u *url.URL, calcEndpoints *calc.Endpoints, wg *sync.WaitGroup, errc chan error, logger *log.Logger, debug bool) {
+func handleHTTPServer(ctx context.Context, u *url.URL, calcEndpoints *calc.Endpoints, accountEndpoints *account.Endpoints, wg *sync.WaitGroup, errc chan error, logger *log.Logger, debug bool) {
 
 	// Setup goa log adapter.
 	var (
@@ -52,15 +54,18 @@ func handleHTTPServer(ctx context.Context, u *url.URL, calcEndpoints *calc.Endpo
 	var (
 		calcServer    *calcsvr.Server
 		openapiServer *openapisvr.Server
+		accountServer *accountsvr.Server
 	)
 	{
 		eh := errorHandler(logger)
 		calcServer = calcsvr.New(calcEndpoints, mux, dec, enc, eh)
 		openapiServer = openapisvr.New(nil, mux, dec, enc, eh)
+		accountServer = accountsvr.New(accountEndpoints, mux, dec, enc, eh)
 	}
 	// Configure the mux.
 	calcsvr.Mount(mux, calcServer)
 	openapisvr.Mount(mux)
+	accountsvr.Mount(mux, accountServer)
 
 	// Wrap the multiplexer with additional middlewares. Middlewares mounted
 	// here apply to all the service endpoints.
@@ -80,6 +85,9 @@ func handleHTTPServer(ctx context.Context, u *url.URL, calcEndpoints *calc.Endpo
 		logger.Printf("HTTP %q mounted on %s %s", m.Method, m.Verb, m.Pattern)
 	}
 	for _, m := range openapiServer.Mounts {
+		logger.Printf("HTTP %q mounted on %s %s", m.Method, m.Verb, m.Pattern)
+	}
+	for _, m := range accountServer.Mounts {
 		logger.Printf("HTTP %q mounted on %s %s", m.Method, m.Verb, m.Pattern)
 	}
 
