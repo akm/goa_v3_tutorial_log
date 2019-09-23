@@ -35,13 +35,13 @@ func (s *calcsrvc) Add(ctx context.Context, p *calc.AddPayload) (res int, err er
 // Multiply implements multiply.
 func (s *calcsrvc) Multiply(ctx context.Context, p *calc.MultiplyPayload) (res int, err error) {
 	s.logger.Print("calc.multiply")
-	return
+	return s.saveCalc(ctx, &Calc{"multiply", p.A, p.B, p.A * p.B})
 }
 
 // Devide implements devide.
 func (s *calcsrvc) Devide(ctx context.Context, p *calc.DevidePayload) (res int, err error) {
 	s.logger.Print("calc.devide")
-	return
+	return s.saveCalc(ctx, &Calc{"devide", p.A, p.B, p.A / p.B})
 }
 
 func (s *calcsrvc) saveCalc(ctx context.Context, c *Calc) (int, error) {
