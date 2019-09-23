@@ -48,6 +48,16 @@ func (s *calcsrvc) Add(ctx context.Context, p *calc.AddPayload) (res int, err er
 	} else {
 		s.logger.Printf("Calculation %v was saved successfully with key: %v", *calc, *key)
 	}
+}
 
+// Multiply implements multiply.
+func (s *calcsrvc) Multiply(ctx context.Context, p *calc.MultiplyPayload) (res int, err error) {
+	s.logger.Print("calc.multiply")
+	return
+}
+
+// Devide implements devide.
+func (s *calcsrvc) Devide(ctx context.Context, p *calc.DevidePayload) (res int, err error) {
+	s.logger.Print("calc.devide")
 	return
 }
