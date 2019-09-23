@@ -30,24 +30,12 @@ func (s *calcsrvc) Add(ctx context.Context, p *calc.AddPayload) (res int, err er
 	s.logger.Print("calc.add")
 	res = p.A + p.B
 
-	dsClient, err := datastore.NewClient(ctx, "")
-	if err != nil {
-		s.logger.Printf("Failed to get datastore client because of [%T] %+v", err, err)
-		return res, err
-	}
-
-	k := datastore.IncompleteKey("calcsvc", nil)
-	calc := &Calc{
+	c := &Calc{
 		A: p.A,
 		B: p.B,
 		R: res,
 	}
-	if key, err := dsClient.Put(ctx, k, calc); err != nil {
-		s.logger.Printf("Failed to put calculation %v into datastore client because of [%T] %+v", *calc, err, err)
-		return res, err
-	} else {
-		s.logger.Printf("Calculation %v was saved successfully with key: %v", *calc, *key)
-	}
+	return s.saveCalc(ctx, c)
 }
 
 // Multiply implements multiply.
@@ -60,4 +48,21 @@ func (s *calcsrvc) Multiply(ctx context.Context, p *calc.MultiplyPayload) (res i
 func (s *calcsrvc) Devide(ctx context.Context, p *calc.DevidePayload) (res int, err error) {
 	s.logger.Print("calc.devide")
 	return
+}
+
+func (s *calcsrvc) saveCalc(ctx context.Context, c *Calc) (int, error) {
+	dsClient, err := datastore.NewClient(ctx, "")
+	if err != nil {
+		s.logger.Printf("Failed to get datastore client because of [%T] %+v", err, err)
+		return 0, err
+	}
+
+	k := datastore.IncompleteKey("calcsvc", nil)
+	if key, err := dsClient.Put(ctx, k, c); err != nil {
+		s.logger.Printf("Failed to put calculation %v into datastore client because of [%T] %+v", *c, err, err)
+		return 0, err
+	} else {
+		s.logger.Printf("Calculation %v was saved successfully with key: %v", *c, *key)
+		return c.R, nil
+	}
 }
