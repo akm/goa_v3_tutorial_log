@@ -5,6 +5,10 @@ SERVER_BIN_PATH=cmd/$(SERVER_DIR_NAME)/$(SERVER_BIN_NAME)
 
 DEV_DATASTORE_PORT=8081
 
+GOTPL_BIN_PATH=$(GOPATH)/bin/gotpl
+APP_YAML_TEMPLATE_PATH=app.yaml.tmpl
+APP_YAML_PATH=app.yaml
+
 .PHONY: dev
 dev: $(SERVER_BIN_PATH) dev_datastore_check
 	DATASTORE_EMULATOR_HOST=localhost:$(DEV_DATASTORE_PORT) \
@@ -49,3 +53,19 @@ dev_datastore_start:
 dev_datastore_check:
 	(ps -ef | grep -v grep | grep cloud_datastore_emulator) || \
 	(echo "No datastore_emulator found. Run \`make dev_datastore_start\` in another terminal" && exit 1)
+
+.PHONY: deploy
+deploy: require_GCP_PROJECT $(APP_YAML_PATH)
+	gcloud --project=$(GCP_PROJECT) app deploy
+
+$(GOTPL_BIN_PATH):
+	go get github.com/tsg/gotpl
+
+$(APP_YAML_PATH): $(GOTPL_BIN_PATH) require_GCP_PROJECT
+	echo "GCP_PROJECT: $(GCP_PROJECT)" | $(GOTPL_BIN_PATH) $(APP_YAML_TEMPLATE_PATH) > $(APP_YAML_PATH)
+
+.PHONY: require_GCP_PROJECT
+require_GCP_PROJECT:
+ifeq "$(GCP_PROJECT)" ""
+	@echo "GCP_PROJECT must be given" && exit 1
+endif
