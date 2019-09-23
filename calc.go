@@ -20,6 +20,7 @@ func NewCalc(logger *log.Logger) calc.Service {
 }
 
 type Calc struct {
+	M string
 	A int
 	B int
 	R int
@@ -28,14 +29,7 @@ type Calc struct {
 // Add implements add.
 func (s *calcsrvc) Add(ctx context.Context, p *calc.AddPayload) (res int, err error) {
 	s.logger.Print("calc.add")
-	res = p.A + p.B
-
-	c := &Calc{
-		A: p.A,
-		B: p.B,
-		R: res,
-	}
-	return s.saveCalc(ctx, c)
+	return s.saveCalc(ctx, &Calc{"add", p.A, p.B, p.A + p.B})
 }
 
 // Multiply implements multiply.
