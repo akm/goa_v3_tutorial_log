@@ -9,12 +9,24 @@ package calc
 
 import (
 	"context"
+
+	"goa.design/goa/v3/security"
 )
 
 // The calc service performs operations on numbers
 type Service interface {
 	// Add implements add.
 	Add(context.Context, *AddPayload) (res int, err error)
+	// Multiply implements multiply.
+	Multiply(context.Context, *MultiplyPayload) (res int, err error)
+	// Devide implements devide.
+	Devide(context.Context, *DevidePayload) (res int, err error)
+}
+
+// Auther defines the authorization functions to be implemented by the service.
+type Auther interface {
+	// JWTAuth implements the authorization logic for the JWT security scheme.
+	JWTAuth(ctx context.Context, token string, schema *security.JWTScheme) (context.Context, error)
 }
 
 // ServiceName is the name of the service as defined in the design. This is the
@@ -25,7 +37,7 @@ const ServiceName = "calc"
 // MethodNames lists the service method names as defined in the design. These
 // are the same values that are set in the endpoint request contexts under the
 // MethodKey key.
-var MethodNames = [1]string{"add"}
+var MethodNames = [3]string{"add", "multiply", "devide"}
 
 // AddPayload is the payload type of the calc service add method.
 type AddPayload struct {
@@ -33,4 +45,50 @@ type AddPayload struct {
 	A int
 	// Right operand
 	B int
+}
+
+// MultiplyPayload is the payload type of the calc service multiply method.
+type MultiplyPayload struct {
+	// Left operand
+	A int
+	// Right operand
+	B int
+	// JWT used for authentication
+	Token string
+}
+
+// DevidePayload is the payload type of the calc service devide method.
+type DevidePayload struct {
+	// Left operand
+	A int
+	// Right operand
+	B int
+	// JWT used for authentication
+	Token string
+}
+
+// Credentials are invalid
+type Unauthorized string
+
+// Token scopes are invalid
+type InvalidScopes string
+
+// Error returns an error description.
+func (e Unauthorized) Error() string {
+	return "Credentials are invalid"
+}
+
+// ErrorName returns "unauthorized".
+func (e Unauthorized) ErrorName() string {
+	return "unauthorized"
+}
+
+// Error returns an error description.
+func (e InvalidScopes) Error() string {
+	return "Token scopes are invalid"
+}
+
+// ErrorName returns "invalid-scopes".
+func (e InvalidScopes) ErrorName() string {
+	return "invalid-scopes"
 }

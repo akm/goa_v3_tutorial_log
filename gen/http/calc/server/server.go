@@ -18,8 +18,10 @@ import (
 
 // Server lists the calc service endpoint HTTP handlers.
 type Server struct {
-	Mounts []*MountPoint
-	Add    http.Handler
+	Mounts   []*MountPoint
+	Add      http.Handler
+	Multiply http.Handler
+	Devide   http.Handler
 }
 
 // ErrorNamer is an interface implemented by generated error structs that
@@ -50,8 +52,12 @@ func New(
 	return &Server{
 		Mounts: []*MountPoint{
 			{"Add", "GET", "/add/{a}/{b}"},
+			{"Multiply", "GET", "/multiply/{a}/{b}"},
+			{"Devide", "GET", "/devide/{a}/{b}"},
 		},
-		Add: NewAddHandler(e.Add, mux, dec, enc, eh),
+		Add:      NewAddHandler(e.Add, mux, dec, enc, eh),
+		Multiply: NewMultiplyHandler(e.Multiply, mux, dec, enc, eh),
+		Devide:   NewDevideHandler(e.Devide, mux, dec, enc, eh),
 	}
 }
 
@@ -61,11 +67,15 @@ func (s *Server) Service() string { return "calc" }
 // Use wraps the server handlers with the given middleware.
 func (s *Server) Use(m func(http.Handler) http.Handler) {
 	s.Add = m(s.Add)
+	s.Multiply = m(s.Multiply)
+	s.Devide = m(s.Devide)
 }
 
 // Mount configures the mux to serve the calc endpoints.
 func Mount(mux goahttp.Muxer, h *Server) {
 	MountAddHandler(mux, h.Add)
+	MountMultiplyHandler(mux, h.Multiply)
+	MountDevideHandler(mux, h.Devide)
 }
 
 // MountAddHandler configures the mux to serve the "calc" service "add"
@@ -92,11 +102,115 @@ func NewAddHandler(
 	var (
 		decodeRequest  = DecodeAddRequest(mux, dec)
 		encodeResponse = EncodeAddResponse(enc)
-		encodeError    = goahttp.ErrorEncoder(enc)
+		encodeError    = EncodeAddError(enc)
 	)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := context.WithValue(r.Context(), goahttp.AcceptTypeKey, r.Header.Get("Accept"))
 		ctx = context.WithValue(ctx, goa.MethodKey, "add")
+		ctx = context.WithValue(ctx, goa.ServiceKey, "calc")
+		payload, err := decodeRequest(r)
+		if err != nil {
+			if err := encodeError(ctx, w, err); err != nil {
+				eh(ctx, w, err)
+			}
+			return
+		}
+
+		res, err := endpoint(ctx, payload)
+
+		if err != nil {
+			if err := encodeError(ctx, w, err); err != nil {
+				eh(ctx, w, err)
+			}
+			return
+		}
+		if err := encodeResponse(ctx, w, res); err != nil {
+			eh(ctx, w, err)
+		}
+	})
+}
+
+// MountMultiplyHandler configures the mux to serve the "calc" service
+// "multiply" endpoint.
+func MountMultiplyHandler(mux goahttp.Muxer, h http.Handler) {
+	f, ok := h.(http.HandlerFunc)
+	if !ok {
+		f = func(w http.ResponseWriter, r *http.Request) {
+			h.ServeHTTP(w, r)
+		}
+	}
+	mux.Handle("GET", "/multiply/{a}/{b}", f)
+}
+
+// NewMultiplyHandler creates a HTTP handler which loads the HTTP request and
+// calls the "calc" service "multiply" endpoint.
+func NewMultiplyHandler(
+	endpoint goa.Endpoint,
+	mux goahttp.Muxer,
+	dec func(*http.Request) goahttp.Decoder,
+	enc func(context.Context, http.ResponseWriter) goahttp.Encoder,
+	eh func(context.Context, http.ResponseWriter, error),
+) http.Handler {
+	var (
+		decodeRequest  = DecodeMultiplyRequest(mux, dec)
+		encodeResponse = EncodeMultiplyResponse(enc)
+		encodeError    = EncodeMultiplyError(enc)
+	)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := context.WithValue(r.Context(), goahttp.AcceptTypeKey, r.Header.Get("Accept"))
+		ctx = context.WithValue(ctx, goa.MethodKey, "multiply")
+		ctx = context.WithValue(ctx, goa.ServiceKey, "calc")
+		payload, err := decodeRequest(r)
+		if err != nil {
+			if err := encodeError(ctx, w, err); err != nil {
+				eh(ctx, w, err)
+			}
+			return
+		}
+
+		res, err := endpoint(ctx, payload)
+
+		if err != nil {
+			if err := encodeError(ctx, w, err); err != nil {
+				eh(ctx, w, err)
+			}
+			return
+		}
+		if err := encodeResponse(ctx, w, res); err != nil {
+			eh(ctx, w, err)
+		}
+	})
+}
+
+// MountDevideHandler configures the mux to serve the "calc" service "devide"
+// endpoint.
+func MountDevideHandler(mux goahttp.Muxer, h http.Handler) {
+	f, ok := h.(http.HandlerFunc)
+	if !ok {
+		f = func(w http.ResponseWriter, r *http.Request) {
+			h.ServeHTTP(w, r)
+		}
+	}
+	mux.Handle("GET", "/devide/{a}/{b}", f)
+}
+
+// NewDevideHandler creates a HTTP handler which loads the HTTP request and
+// calls the "calc" service "devide" endpoint.
+func NewDevideHandler(
+	endpoint goa.Endpoint,
+	mux goahttp.Muxer,
+	dec func(*http.Request) goahttp.Decoder,
+	enc func(context.Context, http.ResponseWriter) goahttp.Encoder,
+	eh func(context.Context, http.ResponseWriter, error),
+) http.Handler {
+	var (
+		decodeRequest  = DecodeDevideRequest(mux, dec)
+		encodeResponse = EncodeDevideResponse(enc)
+		encodeError    = EncodeDevideError(enc)
+	)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := context.WithValue(r.Context(), goahttp.AcceptTypeKey, r.Header.Get("Accept"))
+		ctx = context.WithValue(ctx, goa.MethodKey, "devide")
 		ctx = context.WithValue(ctx, goa.ServiceKey, "calc")
 		payload, err := decodeRequest(r)
 		if err != nil {

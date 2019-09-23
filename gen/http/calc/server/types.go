@@ -11,10 +11,94 @@ import (
 	calc "calcsvc/gen/calc"
 )
 
+// AddInvalidScopesResponseBody is the type of the "calc" service "add"
+// endpoint HTTP response body for the "invalid-scopes" error.
+type AddInvalidScopesResponseBody string
+
+// AddUnauthorizedResponseBody is the type of the "calc" service "add" endpoint
+// HTTP response body for the "unauthorized" error.
+type AddUnauthorizedResponseBody string
+
+// MultiplyInvalidScopesResponseBody is the type of the "calc" service
+// "multiply" endpoint HTTP response body for the "invalid-scopes" error.
+type MultiplyInvalidScopesResponseBody string
+
+// MultiplyUnauthorizedResponseBody is the type of the "calc" service
+// "multiply" endpoint HTTP response body for the "unauthorized" error.
+type MultiplyUnauthorizedResponseBody string
+
+// DevideInvalidScopesResponseBody is the type of the "calc" service "devide"
+// endpoint HTTP response body for the "invalid-scopes" error.
+type DevideInvalidScopesResponseBody string
+
+// DevideUnauthorizedResponseBody is the type of the "calc" service "devide"
+// endpoint HTTP response body for the "unauthorized" error.
+type DevideUnauthorizedResponseBody string
+
+// NewAddInvalidScopesResponseBody builds the HTTP response body from the
+// result of the "add" endpoint of the "calc" service.
+func NewAddInvalidScopesResponseBody(res calc.InvalidScopes) AddInvalidScopesResponseBody {
+	body := AddInvalidScopesResponseBody(res)
+	return body
+}
+
+// NewAddUnauthorizedResponseBody builds the HTTP response body from the result
+// of the "add" endpoint of the "calc" service.
+func NewAddUnauthorizedResponseBody(res calc.Unauthorized) AddUnauthorizedResponseBody {
+	body := AddUnauthorizedResponseBody(res)
+	return body
+}
+
+// NewMultiplyInvalidScopesResponseBody builds the HTTP response body from the
+// result of the "multiply" endpoint of the "calc" service.
+func NewMultiplyInvalidScopesResponseBody(res calc.InvalidScopes) MultiplyInvalidScopesResponseBody {
+	body := MultiplyInvalidScopesResponseBody(res)
+	return body
+}
+
+// NewMultiplyUnauthorizedResponseBody builds the HTTP response body from the
+// result of the "multiply" endpoint of the "calc" service.
+func NewMultiplyUnauthorizedResponseBody(res calc.Unauthorized) MultiplyUnauthorizedResponseBody {
+	body := MultiplyUnauthorizedResponseBody(res)
+	return body
+}
+
+// NewDevideInvalidScopesResponseBody builds the HTTP response body from the
+// result of the "devide" endpoint of the "calc" service.
+func NewDevideInvalidScopesResponseBody(res calc.InvalidScopes) DevideInvalidScopesResponseBody {
+	body := DevideInvalidScopesResponseBody(res)
+	return body
+}
+
+// NewDevideUnauthorizedResponseBody builds the HTTP response body from the
+// result of the "devide" endpoint of the "calc" service.
+func NewDevideUnauthorizedResponseBody(res calc.Unauthorized) DevideUnauthorizedResponseBody {
+	body := DevideUnauthorizedResponseBody(res)
+	return body
+}
+
 // NewAddPayload builds a calc service add endpoint payload.
 func NewAddPayload(a int, b int) *calc.AddPayload {
 	return &calc.AddPayload{
 		A: a,
 		B: b,
+	}
+}
+
+// NewMultiplyPayload builds a calc service multiply endpoint payload.
+func NewMultiplyPayload(a int, b int, token string) *calc.MultiplyPayload {
+	return &calc.MultiplyPayload{
+		A:     a,
+		B:     b,
+		Token: token,
+	}
+}
+
+// NewDevidePayload builds a calc service devide endpoint payload.
+func NewDevidePayload(a int, b int, token string) *calc.DevidePayload {
+	return &calc.DevidePayload{
+		A:     a,
+		B:     b,
+		Token: token,
 	}
 }

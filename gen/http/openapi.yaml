@@ -3,7 +3,7 @@ info:
   title: Calculator Service
   description: HTTP service for adding numbers, a goa teaser
   version: ""
-host: localhost:8088
+host: localhost
 consumes:
 - application/json
 - application/xml
@@ -36,8 +36,131 @@ paths:
           schema:
             type: integer
             format: int64
+        "401":
+          description: Unauthorized response.
+          schema:
+            $ref: '#/definitions/CalcAddUnauthorizedResponseBody'
+        "403":
+          description: Forbidden response.
+          schema:
+            $ref: '#/definitions/CalcAddInvalidScopesResponseBody'
       schemes:
       - http
+  /devide/{a}/{b}:
+    get:
+      tags:
+      - calc
+      summary: devide calc
+      description: |2-
+
+        **Required security scopes for jwt**:
+          * `api:read`
+          * `api:write`
+      operationId: calc#devide
+      parameters:
+      - name: a
+        in: path
+        description: Left operand
+        required: true
+        type: integer
+      - name: b
+        in: path
+        description: Right operand
+        required: true
+        type: integer
+      - name: Authorization
+        in: header
+        description: JWT used for authentication
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK response.
+          schema:
+            type: integer
+            format: int64
+        "401":
+          description: Unauthorized response.
+          schema:
+            $ref: '#/definitions/CalcDevideUnauthorizedResponseBody'
+        "403":
+          description: Forbidden response.
+          schema:
+            $ref: '#/definitions/CalcDevideInvalidScopesResponseBody'
+      schemes:
+      - http
+      security:
+      - jwt_header_Authorization: []
+  /multiply/{a}/{b}:
+    get:
+      tags:
+      - calc
+      summary: multiply calc
+      description: |2-
+
+        **Required security scopes for jwt**:
+          * `api:read`
+      operationId: calc#multiply
+      parameters:
+      - name: a
+        in: path
+        description: Left operand
+        required: true
+        type: integer
+      - name: b
+        in: path
+        description: Right operand
+        required: true
+        type: integer
+      - name: Authorization
+        in: header
+        description: JWT used for authentication
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK response.
+          schema:
+            type: integer
+            format: int64
+        "401":
+          description: Unauthorized response.
+          schema:
+            $ref: '#/definitions/CalcMultiplyUnauthorizedResponseBody'
+        "403":
+          description: Forbidden response.
+          schema:
+            $ref: '#/definitions/CalcMultiplyInvalidScopesResponseBody'
+      schemes:
+      - http
+      security:
+      - jwt_header_Authorization: []
+  /signin:
+    post:
+      tags:
+      - account
+      summary: signin account
+      description: Creates a valid JWT
+      operationId: account#signin
+      parameters:
+      - name: Authorization
+        in: header
+        description: Basic Auth security using Basic scheme (https://tools.ietf.org/html/rfc7617)
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK response.
+          schema:
+            type: string
+        "401":
+          description: Unauthorized response.
+          schema:
+            $ref: '#/definitions/AccountSigninUnauthorizedResponseBody'
+      schemes:
+      - http
+      security:
+      - basic_header_Authorization: []
   /swagger.json:
     get:
       summary: Download ../../gen/http/openapi.json
@@ -49,3 +172,57 @@ paths:
             type: file
       schemes:
       - http
+definitions:
+  AccountSigninUnauthorizedResponseBody:
+    title: AccountSigninUnauthorizedResponseBody
+    type: string
+    description: Credentials are invalid
+    example: Nam deserunt et tempora atque.
+  CalcAddInvalidScopesResponseBody:
+    title: CalcAddInvalidScopesResponseBody
+    type: string
+    description: Token scopes are invalid
+    example: Qui mollitia.
+  CalcAddUnauthorizedResponseBody:
+    title: CalcAddUnauthorizedResponseBody
+    type: string
+    description: Credentials are invalid
+    example: Unde omnis.
+  CalcDevideInvalidScopesResponseBody:
+    title: CalcDevideInvalidScopesResponseBody
+    type: string
+    description: Token scopes are invalid
+    example: Quia dolores consequatur cum itaque.
+  CalcDevideUnauthorizedResponseBody:
+    title: CalcDevideUnauthorizedResponseBody
+    type: string
+    description: Credentials are invalid
+    example: Et consequatur quis dolorum corporis officiis rerum.
+  CalcMultiplyInvalidScopesResponseBody:
+    title: CalcMultiplyInvalidScopesResponseBody
+    type: string
+    description: Token scopes are invalid
+    example: Neque consequatur maiores aut.
+  CalcMultiplyUnauthorizedResponseBody:
+    title: CalcMultiplyUnauthorizedResponseBody
+    type: string
+    description: Credentials are invalid
+    example: Quis consectetur voluptas.
+securityDefinitions:
+  basic_header_Authorization:
+    type: basic
+    description: |-
+      Basic authentication used to authenticate security principal during signin
+
+      **Security Scopes**:
+        * `api:read`: Read-only access
+  jwt_header_Authorization:
+    type: apiKey
+    description: |-
+      Secures endpoint by requiring a valid JWT token retrieved via the signin endpoint. Supports scopes "api:read".
+
+      **Security Scopes**:
+        * `api:read`: Read-only access
+        * `api:write`: Read and write access
+    name: Authorization
+    in: header
