@@ -54,6 +54,10 @@ dev_datastore_check:
 	(ps -ef | grep -v grep | grep cloud_datastore_emulator) || \
 	(echo "No datastore_emulator found. Run \`make dev_datastore_start\` in another terminal" && exit 1)
 
+.PHONY: deploy
+deploy: require_GCP_PROJECT $(APP_YAML_PATH)
+	gcloud --project=$(GCP_PROJECT) app deploy
+
 $(GOTPL_BIN_PATH):
 	go get github.com/tsg/gotpl
 
